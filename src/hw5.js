@@ -66,22 +66,30 @@ function createTriangle(){
 
 const tri1 = createTriangle()
 tri1.applyMatrix4(new THREE.Matrix4().makeTranslation(-6,5,5))
-
-scene.add(tri1);
+// scene.add(tri1);
 
 const tri2 = createTriangle()
-tri2.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(90)))
+tri2.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(180)))
+tri2.applyMatrix4(new THREE.Matrix4().makeTranslation(16,5,5))
+// scene.add(tri2);
 
-scene.add(tri2);
-// console.log(mesh === mesh2)
+const tri3 = createTriangle()
+tri3.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(90)))
+tri3.applyMatrix4(new THREE.Matrix4().makeTranslation(5,5,16))
+// scene.add(tri3);
+
+const tri4 = createTriangle()
+tri4.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(270)))
+tri4.applyMatrix4(new THREE.Matrix4().makeTranslation(5,5,-6))
+// scene.add(tri4);
+
+const hull = new THREE.Group()
+hull.add(tri1,tri2,tri3,tri4,cylinder)
+scene.add(hull);
+[cone, cylinder].forEach((item)=> item.applyMatrix4(new THREE.Matrix4().makeTranslation(0,15,0)))
 
 
-
-
-
-shipGroup.add( cone, cylinder );
-shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(0,15,0))
-// shipGroup.applyMatrix4(new THREE.Matrix4().makeScale(0.6,0.6,0.6).makeTranslation(10,15,10))
+shipGroup.add( cone, hull );
 scene.add(shipGroup, sphere)
 
 
@@ -153,7 +161,9 @@ function animate() {
 	controls.enabled = isOrbitEnabled;
 	controls.update();
 
-	// shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationZ(0.01))
+	shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationZ(0.01))
+    shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(3)))
+
 	//cone.applyMatrix4(new THREE.Matrix4().makeRotationZ(0.01))
 
 
