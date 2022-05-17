@@ -1,10 +1,13 @@
+// import { BufferGeometry } from 'three';
 import {OrbitControls} from './OrbitControls.js'
+
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.setPixelRatio(window.devicePixelRatio)
 document.body.appendChild( renderer.domElement );
 
 
@@ -17,24 +20,87 @@ function degrees_to_radians(degrees)
 // Add here the rendering of your spaceship
 
 // This is a sample box.
-const ambient = new THREE.AmbientLight({color: 0x00ff00})
-const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-const material = new THREE.MeshStandardMaterial( {color: 0x00ff00, wireframe: true} );
-const cube = new THREE.Mesh( geometry, material );
-scene.add( cube, ambient );
+const pointlight = new THREE.PointLight(0xffffff, 1.2)
+pointlight.position.set(20, 20, 20)
+scene.add(pointlight)
 
-const geometry2 = new THREE.ConeGeometry( 5, 20, 32 );
-const material2 = new THREE.MeshBasicMaterial( {color: 0xffff00} );
-const cone = new THREE.Mesh( geometry2, material2 );
-cone.applyMatrix4(new THREE.Matrix4().makeTranslation(5,0,0))
-scene.add( cone );
+
+let geometry = new THREE.SphereGeometry( 5, 32, 16 );
+let material = new THREE.MeshPhongMaterial( { color: 0x54819c} );
+const sphere = new THREE.Mesh( geometry, material );
+sphere.name = 'Planet'
+sphere.applyMatrix4(new THREE.Matrix4().makeTranslation(20,0,0))
+
+
+const shipGroup = new THREE.Group()
+shipGroup.name = 'Ship'
+geometry = new THREE.ConeGeometry( 6, 20, 32 );
+material = new THREE.MeshPhongMaterial( {color: 0xffff00} );
+const cone = new THREE.Mesh( geometry, material );
+cone.name = "Ship head"
+cone.applyMatrix4(new THREE.Matrix4().makeTranslation(5,20,5))
+
+geometry = new THREE.CylinderGeometry( 5, 5, 20, 32 );
+material = new THREE.MeshPhongMaterial( {color: 0xffaf00} );
+const cylinder = new THREE.Mesh( geometry, material );
+cylinder.name = "Ship body"
+cylinder.applyMatrix4(new THREE.Matrix4().makeTranslation(5,0,5))
+
+
+function createTriangle(){
+	const group = new THREE.Group()
+	geometry = new THREE.BufferGeometry();
+	const geometryCopy = new THREE.BufferGeometry();
+	const v1 = [0, 0, 0];
+	const v2 = [10, 0, 0];
+	const v3 = [10, 10, 0];
+	material = new THREE.MeshBasicMaterial({color:0xffffff})
+	geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([...v1, ...v2, ...v3]),3))
+	const mesh1 = new THREE.Mesh(geometry,material)
+	const material2 = new THREE.MeshBasicMaterial({color:0xffffff})
+	geometryCopy.setAttribute('position', new THREE.BufferAttribute(new Float32Array([...v2, ...v1, ...v3]),3))
+	const mesh2 = new THREE.Mesh(geometryCopy,material)
+	group.add(mesh1,mesh2)
+	return group
+}
+
+const tri1 = createTriangle()
+tri1.applyMatrix4(new THREE.Matrix4().makeTranslation(-6,5,5))
+
+scene.add(tri1);
+
+const tri2 = createTriangle()
+tri2.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(90)))
+
+scene.add(tri2);
+// console.log(mesh === mesh2)
+
+
+
+
+
+shipGroup.add( cone, cylinder );
+shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(0,15,0))
+// shipGroup.applyMatrix4(new THREE.Matrix4().makeScale(0.6,0.6,0.6).makeTranslation(10,15,10))
+scene.add(shipGroup, sphere)
+
+
+
+
+//helpers
+const gridHelper = new THREE.GridHelper(200,50)
+const axesHelper = new THREE.AxesHelper( 100 );
+const lightHelper = new THREE.PointLightHelper(pointlight)
+// const ambient = new THREE.AmbientLight('skyblue')
+
+scene.add( axesHelper,gridHelper,lightHelper );
+
 
 
 
 // This defines the initial distance of the camera
-
 const cameraTranslate = new THREE.Matrix4();
-cameraTranslate.makeTranslation(0,0,5);
+cameraTranslate.makeTranslation(2,13,45);
 camera.applyMatrix4(cameraTranslate)
 
 renderer.render( scene, camera );
@@ -47,6 +113,20 @@ const toggleOrbit = (e) => {
 	if (e.key == "o"){
 		isOrbitEnabled = !isOrbitEnabled;
 	}
+	else if (e.key == "c"){
+		console.log("camera position",{...camera.position})
+
+	}
+	else if (e.key == "w"){
+		const setWireFrame = (obj) => {
+			if (obj.material) obj.material.wireframe = !obj.material.wireframe
+			if (!obj.children) return
+			obj.children.forEach((child) =>{
+				setWireFrame(child)			
+			})
+		}
+		setWireFrame(scene)
+	}
 }
 
 document.addEventListener('keydown',toggleOrbit)
@@ -54,12 +134,28 @@ document.addEventListener('keydown',toggleOrbit)
 //controls.update() must be called after any manual changes to the camera's transform
 controls.update();
 
-function animate() {
+function addStar(){
+	const geometry = new THREE.SphereGeometry( 0.2, 22, 22 );
+	const material = new THREE.MeshBasicMaterial( { color: 0xffffff} );
+	const sphere = new THREE.Mesh( geometry, material );
+	const [x,y,z] = Array(3).fill().map(()=>THREE.MathUtils.randFloatSpread(300))
+	sphere.applyMatrix4(new THREE.Matrix4().makeTranslation(x,y,z))
+	scene.add( sphere );
+}
+Array(300).fill().forEach(addStar)
+console.log("scene" , scene)
 
+
+function animate() {
+	
 	requestAnimationFrame( animate );
 
 	controls.enabled = isOrbitEnabled;
 	controls.update();
+
+	// shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationZ(0.01))
+	//cone.applyMatrix4(new THREE.Matrix4().makeRotationZ(0.01))
+
 
 	renderer.render( scene, camera );
 
