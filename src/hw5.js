@@ -9,6 +9,7 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.setPixelRatio(window.devicePixelRatio)
 document.body.appendChild( renderer.domElement );
 
+let ROTATE_X, ROTATE_Z = false
 
 function degrees_to_radians(degrees)
 {
@@ -19,33 +20,45 @@ function degrees_to_radians(degrees)
 // Add here the rendering of your spaceship
 
 	const pointlight = new THREE.PointLight(0xffffff, 1.2)
-	pointlight.position.set(20, 20, 20)
+	pointlight.position.set(60, 100, 30)
 	scene.add(pointlight)
-
 
 	let geometry = new THREE.SphereGeometry( 5, 32, 16 );
 	let material = new THREE.MeshPhongMaterial( { color: 0x54819c} );
 	const sphere = new THREE.Mesh( geometry, material );
 	sphere.name = 'Planet'
-	sphere.applyMatrix4(new THREE.Matrix4().makeTranslation(20,10,20))
-
+	sphere.applyMatrix4(new THREE.Matrix4().makeTranslation(10,10,10))
+	sphere.applyMatrix4(new THREE.Matrix4().makeScale(5,5,5))
 
 	const shipGroup = new THREE.Group()
 	shipGroup.name = 'Ship'
-	geometry = new THREE.ConeGeometry( 6, 20, 32 );
+	geometry = new THREE.ConeGeometry( 5, 15, 32 );
 	material = new THREE.MeshPhongMaterial( {color: 0xffff00} );
 	const cone = new THREE.Mesh( geometry, material );
 	cone.name = "Ship head"
-	cone.applyMatrix4(new THREE.Matrix4().makeTranslation(5,20,5))
+	cone.applyMatrix4(new THREE.Matrix4().makeTranslation(5,12.5,5))
 
-	geometry = new THREE.CylinderGeometry( 5, 5, 20, 32 );
+	geometry = new THREE.CylinderGeometry( 5, 5, 15, 32 );
 	material = new THREE.MeshPhongMaterial( {color: 0xffaf00} );
 	const cylinder = new THREE.Mesh( geometry, material );
 	cylinder.name = "Ship body"
-	cylinder.applyMatrix4(new THREE.Matrix4().makeTranslation(5,0,5))
+	cylinder.applyMatrix4(new THREE.Matrix4().makeTranslation(5,-2.5,5))
+
+	const windows = new THREE.Group()
+	geometry = new THREE.RingGeometry( 3, 5, 32 );
+	material = new THREE.MeshBasicMaterial( { color: 0xffff00, side: THREE.DoubleSide } );
+	const window1 = new THREE.Mesh( geometry, material );
+	window1.applyMatrix4(new THREE.Matrix4().makeScale(0.3,0.3,0.3))
+	window1.applyMatrix4(new THREE.Matrix4().makeTranslation(5,18,10))
+	
+	const window2 = new THREE.Mesh( geometry, material );
+	window2.applyMatrix4(new THREE.Matrix4().makeScale(0.3,0.3,0.3))
+	window2.applyMatrix4(new THREE.Matrix4().makeTranslation(5,14,10))
+
+	windows.add( window1,window2 );
 
 
-	function createTriangle(){
+	function constructTriangle(){
 		const group = new THREE.Group()
 		geometry = new THREE.BufferGeometry();
 		const geometryCopy = new THREE.BufferGeometry();
@@ -61,30 +74,34 @@ function degrees_to_radians(degrees)
 		group.add(mesh1,mesh2)
 		return group
 	}
+	function createTriangles(){
+		const tri1 = constructTriangle()
+		tri1.applyMatrix4(new THREE.Matrix4().makeTranslation(-6,5,5))
+	
+		const tri2 = constructTriangle()
+		tri2.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(180)))
+		tri2.applyMatrix4(new THREE.Matrix4().makeTranslation(16,5,5))
+	
+		const tri3 = constructTriangle()
+		tri3.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(90)))
+		tri3.applyMatrix4(new THREE.Matrix4().makeTranslation(5,5,16))
+	
+		const tri4 = constructTriangle()
+		tri4.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(270)))
+		tri4.applyMatrix4(new THREE.Matrix4().makeTranslation(5,5,-6))
+		return {tri1,tri2,tri3,tri4}
+	}
 
-	const tri1 = createTriangle()
-	tri1.applyMatrix4(new THREE.Matrix4().makeTranslation(-6,5,5))
-
-	const tri2 = createTriangle()
-	tri2.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(180)))
-	tri2.applyMatrix4(new THREE.Matrix4().makeTranslation(16,5,5))
-
-	const tri3 = createTriangle()
-	tri3.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(90)))
-	tri3.applyMatrix4(new THREE.Matrix4().makeTranslation(5,5,16))
-
-	const tri4 = createTriangle()
-	tri4.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(270)))
-	tri4.applyMatrix4(new THREE.Matrix4().makeTranslation(5,5,-6))
-
+	const {tri1,tri2,tri3,tri4} = createTriangles()
+	const wings = new THREE.Group()
+	wings.add(tri1,tri2,tri3,tri4)
 	const hull = new THREE.Group()
-	hull.add(tri1,tri2,tri3,tri4,cylinder)
+	hull.add(wings,cylinder, windows)
 	scene.add(hull);
 	[cone, cylinder].forEach((item)=> item.applyMatrix4(new THREE.Matrix4().makeTranslation(0,15,0)))
 
 
 	shipGroup.add( cone, hull );
-	shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(5,5,5))
 	scene.add(shipGroup, sphere)
 
 
@@ -104,7 +121,10 @@ addHelpers()
 // This defines the initial distance of the camera
 function init_cam(renderer,scene,camera){
 const cameraTranslate = new THREE.Matrix4();
-cameraTranslate.makeTranslation(2,13,45);
+// const {x,y,z} ={x: 204.3181817338782, y: 95.30262676454568, z: 45.121987400043196}
+const {x,y,z} = {x: 10.14056496663126, y: 7.954430696794227, z: 42.63321445126292}
+
+cameraTranslate.makeTranslation(x,y,z);
 camera.applyMatrix4(cameraTranslate)
 
 renderer.render( scene, camera );
@@ -114,12 +134,17 @@ init_cam(renderer,scene,camera)
 
 const controls = new OrbitControls( camera, renderer.domElement );
 let isOrbitEnabled = true;
-const toggleOrbit = (e) => {
+const toggle = (e) => {
 	if (e.key == "o"){
 		isOrbitEnabled = !isOrbitEnabled;
 	}
 	else if (e.key == "c"){
 		console.log("camera position",{...camera.position})
+		console.log("ship position", shipGroup.getWorldPosition())
+		console.log("sphere position", sphere.getWorldPosition())
+		console.log("ship scale", shipGroup.getWorldScale())
+		console.log("sphere scale", sphere.getWorldScale())
+
 
 	}
 	else if (e.key == "w"){
@@ -132,8 +157,16 @@ const toggleOrbit = (e) => {
 		}
 		setWireFrame(scene)
 	}
+	else if (e.key == "1"){
+		ROTATE_X = !ROTATE_X;
+		updateCoords()
+	}
+	else if (e.key == "2"){
+		ROTATE_Z = !ROTATE_Z;
+		updateCoords()
+	}
 }
-document.addEventListener('keydown',toggleOrbit)
+document.addEventListener('keydown',toggle)
 //controls.update() must be called after any manual changes to the camera's transform
 controls.update();
 
@@ -151,19 +184,30 @@ Array(300).fill().forEach(addStar)
 
 
 console.log("scene" , scene)
-console.log("ship position", shipGroup.getWorldPosition())
+console.log("ship centre", shipGroup.getWorldPosition())
+
+let sphereX, sphereY, sphereZ, shipX, shipY, shipZ, spherePos, shipPos
+function updateCoords() {
+	spherePos = sphere.getWorldPosition()
+	sphereX = spherePos.x
+	sphereY = spherePos.y
+	sphereZ = spherePos.z
+	shipPos = shipGroup.getWorldPosition()
+	shipX = shipPos.x
+	shipY = shipPos.y
+	shipZ = shipPos.z
+}
+updateCoords()
 
 
-const {x,y,z} = sphere.getWorldPosition()
-const {x2,y2,z2} = shipGroup.getWorldPosition()
+console.log("posSHIP", shipX,shipY,shipZ)
+console.log("posSPHERE", sphereX,sphereY,sphereZ)
 
-// shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-x2,-y2,-z2))
-// shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationX(degrees_to_radians(270)))
-// shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(x2,y2,z2))
+shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-shipX,-shipY,-shipZ))
+shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationX(degrees_to_radians(90)))
+shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(shipX,shipY,shipZ))
+shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-10,sphereY-shipX,sphereZ-shipZ))
 
-
-// shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-x,y,z))
-// console.log("ship position", shipGroup.getWorldPosition())
 
 
 function animate() {
@@ -175,10 +219,10 @@ function animate() {
 
 	// shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-x,-y,-z).makeRotationY(0.02).makeTranslation(x,y,z))
 
-	// shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-x,-y,-z))
-	// shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationY(0.02))
-	// shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(x,y,z))
-
+	shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-sphereX,-sphereY,-sphereZ))
+	if (ROTATE_X) shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(0.8)))
+	if (ROTATE_Z) shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationZ(degrees_to_radians(0.8)))
+	shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(sphereX,sphereY,sphereZ))
 
 	// shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationZ(0.01))
     // shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(3)))
