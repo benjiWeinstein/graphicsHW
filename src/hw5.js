@@ -145,13 +145,13 @@ const toggle = (e) => {
 	if (e.key == "o"){
 		isOrbitEnabled = !isOrbitEnabled;
 	}
-	else if (e.key == "c"){
-		console.log("camera position",{...camera.position})
-		console.log("ship position", shipGroup.getWorldPosition())
-		console.log("sphere position", sphere.getWorldPosition())
-		console.log("ship scale", shipGroup.getWorldScale())
-		console.log("sphere scale", sphere.getWorldScale())
-	}
+	// else if (e.key == "c"){
+	// 	console.log("camera position",{...camera.position})
+	// 	console.log("ship position", shipGroup.getWorldPosition())
+	// 	console.log("sphere position", sphere.getWorldPosition())
+	// 	console.log("ship scale", shipGroup.getWorldScale())
+	// 	console.log("sphere scale", sphere.getWorldScale())
+	// }
 	else if (e.key == "w"){
 		const setWireFrame = (obj) => {
 			if (obj.material) obj.material.wireframe = !obj.material.wireframe
