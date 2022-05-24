@@ -9,7 +9,9 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.setPixelRatio(window.devicePixelRatio)
 document.body.appendChild( renderer.domElement );
 
-let ROTATE_X, ROTATE_Z = false
+let ROTATE_Z, HELPERS = false
+let ROTATE_X, SHOW_STARS = true 
+
 
 function degrees_to_radians(degrees)
 {
@@ -22,6 +24,9 @@ function degrees_to_radians(degrees)
 	const pointlight = new THREE.PointLight(0xffffff, 1.2)
 	pointlight.position.set(60, 100, 30)
 	scene.add(pointlight)
+	const pointlight2 = new THREE.PointLight(0xffffff, 1.2)
+	pointlight2.position.set(60, 100, 100)
+	scene.add(pointlight2)
 
 	let geometry = new THREE.SphereGeometry( 5, 32, 16 );
 	let material = new THREE.MeshPhongMaterial( { color: 0x54819c} );
@@ -105,24 +110,26 @@ function degrees_to_radians(degrees)
 	scene.add(shipGroup, sphere)
 
 
-
+let axesHelper,gridHelper,lightHelper
 //helpers
 function addHelpers() {
-	const gridHelper = new THREE.GridHelper(200,50)
-	const axesHelper = new THREE.AxesHelper( 100 );
-	const lightHelper = new THREE.PointLightHelper(pointlight)
+	gridHelper = new THREE.GridHelper(200,50)
+	axesHelper = new THREE.AxesHelper( 100 );
+	lightHelper = new THREE.PointLightHelper(pointlight)
 	// const ambient = new THREE.AmbientLight('skyblue')
 	scene.add( axesHelper,gridHelper,lightHelper );
 }
-addHelpers()
-
+// addHelpers()
+function removeHelpers() {
+	scene.remove( axesHelper,gridHelper,lightHelper );
+}
 
 
 // This defines the initial distance of the camera
 function init_cam(renderer,scene,camera){
 const cameraTranslate = new THREE.Matrix4();
 // const {x,y,z} ={x: 204.3181817338782, y: 95.30262676454568, z: 45.121987400043196}
-const {x,y,z} = {x: 10.14056496663126, y: 7.954430696794227, z: 42.63321445126292}
+const {x,y,z} = {x: 83.644823004712, y: 94.53865066260205, z: 192.17307542315658}
 
 cameraTranslate.makeTranslation(x,y,z);
 camera.applyMatrix4(cameraTranslate)
@@ -144,8 +151,6 @@ const toggle = (e) => {
 		console.log("sphere position", sphere.getWorldPosition())
 		console.log("ship scale", shipGroup.getWorldScale())
 		console.log("sphere scale", sphere.getWorldScale())
-
-
 	}
 	else if (e.key == "w"){
 		const setWireFrame = (obj) => {
@@ -165,21 +170,30 @@ const toggle = (e) => {
 		ROTATE_Z = !ROTATE_Z;
 		updateCoords()
 	}
+	else if (e.key=="h"){
+		HELPERS ? removeHelpers():addHelpers() 
+		HELPERS = !HELPERS
+	}
+	else if (e.key=="s"){
+		SHOW_STARS ? scene.remove(stars):scene.add(stars)
+		SHOW_STARS = !SHOW_STARS
+	}
 }
 document.addEventListener('keydown',toggle)
 //controls.update() must be called after any manual changes to the camera's transform
 controls.update();
 
-
+const stars = new THREE.Group()
 function addStar(){
 	const geometry = new THREE.SphereGeometry( 0.2, 22, 22 );
 	const material = new THREE.MeshBasicMaterial( { color: 0xffffff} );
 	const sphere = new THREE.Mesh( geometry, material );
 	const [x,y,z] = Array(3).fill().map(()=>THREE.MathUtils.randFloatSpread(300))
 	sphere.applyMatrix4(new THREE.Matrix4().makeTranslation(x,y,z))
-	scene.add( sphere );
+	stars.add( sphere );
 }
 Array(300).fill().forEach(addStar)
+scene.add(stars)
 
 
 
@@ -217,20 +231,13 @@ function animate() {
 	controls.enabled = isOrbitEnabled;
 	controls.update();
 
-	// shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-x,-y,-z).makeRotationY(0.02).makeTranslation(x,y,z))
 
 	shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-sphereX,-sphereY,-sphereZ))
 	if (ROTATE_X) shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(0.8)))
 	if (ROTATE_Z) shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationZ(degrees_to_radians(0.8)))
 	shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(sphereX,sphereY,sphereZ))
 
-	// shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationZ(0.01))
-    // shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(3)))
-	// shipGroup.rotateY(0.02)
-
-	//cone.applyMatrix4(new THREE.Matrix4().makeRotationZ(0.01))
-
-
+	
 	renderer.render( scene, camera );
 
 }
