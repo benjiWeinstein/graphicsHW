@@ -48,6 +48,7 @@ function degrees_to_radians(degrees)
 	const cylinder = new THREE.Mesh( geometry, material );
 	cylinder.name = "Ship body"
 	cylinder.applyMatrix4(new THREE.Matrix4().makeTranslation(5,-2.5,5))
+	console.log("smelly mellly");
 
 	const windows = new THREE.Group()
 	geometry = new THREE.RingGeometry( 3, 5, 32 );
