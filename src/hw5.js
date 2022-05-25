@@ -10,8 +10,15 @@ renderer.setPixelRatio(window.devicePixelRatio)
 document.body.appendChild( renderer.domElement );
 
 let ROTATE_Z, HELPERS = false
-let ROTATE_X, SHOW_STARS = true 
+let ROTATE_X, SHOW_STARS = true
+let INC_RAD = false 
 
+//const rotateX = new THREE.Matrix4().makeRotationY(degrees_to_radians(0.8))
+//const rotateZ = new THREE.Matrix4().makeRotationZ(degrees_to_radians(0.8))
+//const incRad = new THREE.Matrix4().makeTranslation(0.01*(shipX - sphereX), 0.01*(shipY - sphereY), 0.01*(shipZ - sphereZ))
+//const rotateX_incRad = new THREE.Matrix4().multiplyMatrices(rotateX, incRad)
+//const rotateZ_incRad = new THREE.Matrix4().multiplyMatrices(rotateZ, incRad)
+//const allThree = new THREE.Matrix4().multiplyMatrices(rotateX, rotateZ_incRad)
 
 function degrees_to_radians(degrees)
 {
@@ -48,7 +55,6 @@ function degrees_to_radians(degrees)
 	const cylinder = new THREE.Mesh( geometry, material );
 	cylinder.name = "Ship body"
 	cylinder.applyMatrix4(new THREE.Matrix4().makeTranslation(5,-2.5,5))
-	console.log("smelly mellly is black");
 
 	const windows = new THREE.Group()
 	geometry = new THREE.RingGeometry( 3, 5, 32 );
@@ -62,6 +68,33 @@ function degrees_to_radians(degrees)
 	window2.applyMatrix4(new THREE.Matrix4().makeTranslation(5,14,10))
 
 	windows.add( window1,window2 );
+
+	const thrusters = new THREE.Group()
+	geometry = new THREE.RingGeometry(4, 6, 32);
+	material = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide});
+	const thruster1 = new THREE.Mesh( geometry, material);
+	thruster1.applyMatrix4(new THREE.Matrix4().makeRotationX(degrees_to_radians(90)))
+	thruster1.applyMatrix4(new THREE.Matrix4().makeScale(0.3,0.3,0.3))
+	thruster1.applyMatrix4(new THREE.Matrix4().makeTranslation(2.5,5,5))
+
+	const thruster2 = new THREE.Mesh(geometry, material);
+	thruster2.applyMatrix4(new THREE.Matrix4().makeRotationX(degrees_to_radians(90)))
+	thruster2.applyMatrix4(new THREE.Matrix4().makeScale(0.3,0.3,0.3))
+	thruster2.applyMatrix4(new THREE.Matrix4().makeTranslation(7, 5, 5))
+
+	geometry = new THREE.CircleGeometry(4, 32);
+	material = new THREE.MeshBasicMaterial({color: 0xff0000, side: THREE.DoubleSide})
+	const burner1 = new THREE.Mesh(geometry, material);
+	burner1.applyMatrix4(new THREE.Matrix4().makeRotationX(degrees_to_radians(90)))
+	burner1.applyMatrix4(new THREE.Matrix4().makeScale(0.3,0.3,0.3))
+	burner1.applyMatrix4(new THREE.Matrix4().makeTranslation(2.5,5,5))
+
+	const burner2 = new THREE.Mesh(geometry, material);
+	burner2.applyMatrix4(new THREE.Matrix4().makeRotationX(degrees_to_radians(90)))
+	burner2.applyMatrix4(new THREE.Matrix4().makeScale(0.3,0.3,0.3))
+	burner2.applyMatrix4(new THREE.Matrix4().makeTranslation(7,5,5))
+
+	thrusters.add(thruster1, thruster2, burner1, burner2);
 
 
 	function constructTriangle(){
@@ -98,11 +131,12 @@ function degrees_to_radians(degrees)
 		return {tri1,tri2,tri3,tri4}
 	}
 
+
 	const {tri1,tri2,tri3,tri4} = createTriangles()
 	const wings = new THREE.Group()
 	wings.add(tri1,tri2,tri3,tri4)
 	const hull = new THREE.Group()
-	hull.add(wings,cylinder, windows)
+	hull.add(wings,cylinder, windows,thrusters)
 	scene.add(hull);
 	[cone, cylinder].forEach((item)=> item.applyMatrix4(new THREE.Matrix4().makeTranslation(0,15,0)))
 
@@ -171,6 +205,10 @@ const toggle = (e) => {
 		ROTATE_Z = !ROTATE_Z;
 		updateCoords()
 	}
+	else if (e.key == "3"){
+		INC_RAD = !INC_RAD;
+		updateCoords()
+	}
 	else if (e.key=="h"){
 		HELPERS ? removeHelpers():addHelpers() 
 		HELPERS = !HELPERS
@@ -214,7 +252,6 @@ function updateCoords() {
 }
 updateCoords()
 
-
 console.log("posSHIP", shipX,shipY,shipZ)
 console.log("posSPHERE", sphereX,sphereY,sphereZ)
 
@@ -222,6 +259,7 @@ shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-shipX,-shipY,-shipZ)
 shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationX(degrees_to_radians(90)))
 shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(shipX,shipY,shipZ))
 shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-10,sphereY-shipX,sphereZ-shipZ))
+
 
 
 
@@ -236,6 +274,8 @@ function animate() {
 	shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-sphereX,-sphereY,-sphereZ))
 	if (ROTATE_X) shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(0.8)))
 	if (ROTATE_Z) shipGroup.applyMatrix4(new THREE.Matrix4().makeRotationZ(degrees_to_radians(0.8)))
+	if (INC_RAD) shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(0.01*(shipX - sphereX), 0.01*(shipY - sphereY), 0.01*(shipZ - sphereZ)))
+
 	shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(sphereX,sphereY,sphereZ))
 
 	
