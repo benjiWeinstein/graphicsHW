@@ -1,4 +1,3 @@
-// import { BufferGeometry } from 'three';
 import {OrbitControls} from './OrbitControls.js'
 
 // init scene
@@ -151,7 +150,6 @@ function addHelpers() {
 	gridHelper = new THREE.GridHelper(200,50)
 	axesHelper = new THREE.AxesHelper( 100 );
 	lightHelper = new THREE.PointLightHelper(pointlight)
-	// const ambient = new THREE.AmbientLight('skyblue')
 	scene.add( axesHelper,gridHelper,lightHelper );
 }
 // addHelpers()
@@ -163,7 +161,6 @@ function removeHelpers() {
 // This defines the initial distance of the camera
 function init_cam(renderer,scene,camera){
 const cameraTranslate = new THREE.Matrix4();
-// const {x,y,z} ={x: 204.3181817338782, y: 95.30262676454568, z: 45.121987400043196}
 const {x,y,z} = {x: 83.644823004712, y: 94.53865066260205, z: 192.17307542315658}
 
 cameraTranslate.makeTranslation(x,y,z);
@@ -180,13 +177,7 @@ const toggle = (e) => {
 	if (e.key == "o"){
 		isOrbitEnabled = !isOrbitEnabled;
 	}
-	// else if (e.key == "c"){
-	// 	console.log("camera position",{...camera.position})
-	// 	console.log("ship position", shipGroup.getWorldPosition())
-	// 	console.log("sphere position", sphere.getWorldPosition())
-	// 	console.log("ship scale", shipGroup.getWorldScale())
-	// 	console.log("sphere scale", sphere.getWorldScale())
-	// }
+
 	else if (e.key == "w"){
 		const setWireFrame = (obj) => {
 			if (obj.material) obj.material.wireframe = !obj.material.wireframe
